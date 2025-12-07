@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 視訊深偽檢測助手 | Deepfake Defense</title>
+    <title>AI 視訊深偽檢測助手 | Deepfake Defense (最終改良版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* ... (保留所有原有的 CSS 樣式) ... */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
         
         body {
@@ -55,40 +56,31 @@
         }
 
         .checkbox-wrapper input:checked + div {
-            background-color: #ef4444;
+            /* 勾選時使用紅色或強調色 */
+            background-color: #ef4444; 
             border-color: #ef4444;
             color: white;
         }
         
-        .pulse-red {
-            animation: pulse-red 2s infinite;
-        }
-        
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        /* Video Upload Styles */
-        .video-upload-area {
+        /* Video/Photo Upload Styles */
+        .video-upload-area, .photo-upload-area-custom {
             border: 2px dashed #475569;
             transition: all 0.3s;
         }
-        .video-upload-area:hover {
+        .video-upload-area:hover, .photo-upload-area-custom:hover {
             border-color: #3b82f6;
             background-color: rgba(59, 130, 246, 0.05);
         }
         /* Style for the report details */
         #detection-report-details p[style*="green"] {
-            background-color: rgba(16, 185, 129, 0.2); /* green-500/20 */
-            color: #10b981; /* green-500 */
+            background-color: rgba(16, 185, 129, 0.2); 
+            color: #10b981; 
             padding: 8px;
             border-radius: 4px;
         }
         #detection-report-details p[style*="red"] {
-            background-color: rgba(239, 68, 68, 0.2); /* red-500/20 */
-            color: #ef4444; /* red-500 */
+            background-color: rgba(239, 68, 68, 0.2); 
+            color: #ef4444; 
             padding: 8px;
             border-radius: 4px;
         }
@@ -99,7 +91,37 @@
         }
         #detection-report-details li {
             padding: 5px 0;
-            border-bottom: 1px dashed #334155; /* slate-700 */
+            border-bottom: 1px dashed #334155; 
+        }
+        #detection-report-details li button {
+             /* 樣式化時間戳按鈕 */
+            background-color: #1e293b;
+            color: #3b82f6;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+        #detection-report-details li button:hover {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        /* 圖片預覽樣式 */
+        #photo-preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            background-color: #1e293b;
+            border-radius: 8px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        #uploaded-photo-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 6px;
         }
     </style>
 </head>
@@ -112,7 +134,7 @@
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-wide text-white">Deepfake Defense</h1>
-                <p class="text-xs text-slate-400">AI 影片審核儀表板</p>
+                <p class="text-xs text-slate-400">AI 影片審核儀表板 (最終改良版)</p>
             </div>
         </div>
         <div class="hidden md:flex items-center space-x-4">
@@ -126,6 +148,18 @@
 
         <div class="lg:col-span-8 space-y-6">
             
+            <div class="bg-slate-800 rounded-2xl p-4 shadow-xl border border-slate-700">
+                <h2 class="text-lg font-semibold mb-3 text-slate-200 flex items-center">
+                    <i class="fas fa-play-circle mr-2 text-red-400"></i> 影片預覽與時間點跳轉
+                </h2>
+                <div class="aspect-video bg-black rounded-lg overflow-hidden">
+                    <video id="video-player" controls class="w-full h-full" poster="https://via.placeholder.com/800x450.png?text=Upload+Video+to+Preview+Content">
+                        您的瀏覽器不支援 HTML5 影片。
+                    </video>
+                </div>
+                <p id="player-status" class="text-sm text-slate-400 mt-2">上傳影片後將在此播放。</p>
+            </div>
+
             <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700 relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-10">
                     <i class="fas fa-exclamation-triangle text-9xl"></i>
@@ -169,15 +203,6 @@
                     </div>
                 </div>
             </div>
-
-            <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700">
-                <h2 class="text-lg font-semibold mb-4 text-slate-200 flex items-center">
-                    <i class="fas fa-microscope mr-2 text-red-400"></i> AI 審核詳細報告
-                </h2>
-                <div id="detection-report-details" class="bg-slate-900/50 p-4 rounded-lg text-slate-300 min-h-[100px]">
-                    <p>報告結果將在這裡顯示。請先上傳影片。</p>
-                </div>
-            </div>
             
         </div>
 
@@ -193,9 +218,44 @@
                     <p id="upload-filename" class="text-xs text-slate-500 mt-1">[支援 mp4, mov, avi]</p>
                     <input type="file" id="videoUploadInput" accept="video/*" class="hidden" onchange="handleVideoUpload(event)">
                 </div>
+                <div id="upload-progress-container" class="mt-4 hidden">
+                    <p class="text-sm text-slate-400 mb-1">上傳進度: <span id="upload-percentage">0%</span></p>
+                    <div class="w-full bg-slate-700 rounded-full h-2.5">
+                        <div id="upload-progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700">
+                <h2 class="text-lg font-semibold mb-4 text-white flex items-center">
+                    <i class="fas fa-camera mr-2 text-indigo-400"></i> 真容細節比對
+                </h2>
+                <p class="text-sm text-slate-400 mb-4">
+                    上傳親友的*真實照片*，比對視訊畫面中的黑痣、耳廓形狀、牙齒等細節。
+                </p>
+                
+                <div class="photo-upload-area-custom flex flex-col items-center justify-center p-6 rounded-xl bg-slate-900/50 cursor-pointer" onclick="document.getElementById('photoUploadInput').click()">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-indigo-500 mb-2"></i>
+                    <p class="text-slate-300 font-medium">點擊上傳真實照片</p>
+                    <p class="text-xs text-slate-500 mt-1">照片僅在本機瀏覽器顯示，不會上傳雲端</p>
+                    <input type="file" id="photoUploadInput" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+                </div>
+                
+                <div id="photo-preview-container">
+                    <img id="uploaded-photo-preview" src="https://via.placeholder.com/300x200?text=Photo+Preview" alt="上傳照片預覽" class="opacity-50">
+                </div>
             </div>
 
             <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700">
+                <h2 class="text-lg font-semibold mb-4 text-slate-200 flex items-center">
+                    <i class="fas fa-microscope mr-2 text-red-400"></i> AI 審核詳細報告
+                </h2>
+                <div id="detection-report-details" class="bg-slate-900/50 p-4 rounded-lg text-slate-300 min-h-[100px]">
+                    <p>報告結果將在這裡顯示。請先上傳影片。</p>
+                </div>
+            </div>
+            
+             <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-lg font-semibold text-slate-200 flex items-center">
                         <i class="fas fa-list-check mr-2 text-yellow-400"></i> 人工檢查輔助清單
@@ -236,7 +296,7 @@
                 本平台結合了 Google Cloud Video Intelligence API 進行內容安全審核 (Safe Search Detection)，專注於偵測成人、暴力、血腥等有害內容的風險。
             </p>
             <p class="text-sm text-slate-300 leading-relaxed mt-2">
-                同時，我們使用客製化的 AI 模型（後端模擬）來分析影片的幀間一致性、眼睛、嘴唇運動和光照異常，以識別 Deepfake 偽造的常見特徵。
+                同時，我們使用客製化的 AI 模型（後端模擬）來分析影片的幀間一致性、眼睛、嘴唇運動和光照異常，並結合*人工檢查輔助清單*，以識別 Deepfake 偽造的常見特徵。
             </p>
             <button onclick="toggleInfoModal()" class="mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white text-sm transition">關閉</button>
         </div>
@@ -245,143 +305,267 @@
 
     <script>
         const API_ENDPOINT = 'http://localhost:5000/api/analyze'; 
+        const videoPlayer = document.getElementById('video-player');
+        
+        // *新增*：儲存 AI 分析得出的基礎風險分數
+        let baseAIRiskScore = 0; 
 
         // =================================================================
         // 核心邏輯函數：更新儀表板狀態
         // =================================================================
         function updateRiskMeter(percentage, label, colorClass, duration = 0.5) {
-            const dashOffset = 552 * (1 - (percentage / 100));
+            // 確保分數不超過 100%
+            const finalPercentage = Math.min(100, percentage); 
+
+            const dashOffset = 552 * (1 - (finalPercentage / 100));
             const circle = document.getElementById('risk-circle');
             const riskPercentage = document.getElementById('risk-percentage');
             const riskLabel = document.getElementById('risk-label');
 
-            // 設置過渡時間
             circle.style.transitionDuration = ${duration}s;
+            circle.style.strokeDashoffset = dashOffset;
             
-            // 更新儀表
-            circle.style.strokeDashdashoffset = dashOffset;
+            // 根據分數範圍確定顏色
+            let finalColorClass;
+            if (finalPercentage >= 70) {
+                finalColorClass = 'text-red-500';
+            } else if (finalPercentage >= 40) {
+                finalColorClass = 'text-yellow-500';
+            } else {
+                finalColorClass = 'text-green-500';
+            }
+
+            circle.className = 'risk-meter ' + finalColorClass.replace('text-', 'text-');
             
-            // 重置類別並添加新類別
-            circle.className = 'risk-meter ' + colorClass.replace('text-', 'text-');
-            
-            // 更新文字
-            riskPercentage.textContent = ${percentage}%;
+            riskPercentage.textContent = ${finalPercentage}%;
             riskLabel.textContent = label;
-            riskLabel.className = text-sm font-medium ${colorClass.replace('text-', 'text-')} mt-1;
+            riskLabel.className = text-sm font-medium ${finalColorClass.replace('text-', 'text-')} mt-1;
         }
         
         // =================================================================
-        // API 整合函數：處理檔案上傳並呼叫後端
+        // 新增：計算人工檢查累積風險並更新總分
+        // =================================================================
+        function calculateAndApplyManualRisk() {
+            // 1. 計算手動風險總和
+            let manualRisk = 0;
+            const checkboxes = document.querySelectorAll('#checklist-items input[type="checkbox"]');
+            
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    // 將 data-risk 屬性值累加
+                    manualRisk += parseInt(cb.getAttribute('data-risk'), 10) || 0; 
+                }
+            });
+
+            // 2. 累加總風險
+            let totalRisk = baseAIRiskScore + manualRisk;
+
+            // 3. 根據總風險更新標籤和建議
+            let label = '極低風險';
+            let advice = document.getElementById('risk-advice').textContent; // 保留AI建議
+
+            if (totalRisk >= 70) {
+                label = '極高風險';
+                advice = "🚨 總風險極高！AI 和人工輔助檢查均顯示重大異常。";
+            } else if (totalRisk >= 40) {
+                label = '中度風險';
+                if (!document.getElementById('detection-report-details').innerHTML.includes('AI 審核標記')) {
+                    // 如果 AI 沒標記，則手動檢查觸發了中度風險
+                    advice = "⚠ 人工檢查標記了多項異常。請結合真容比對進行複核！";
+                }
+            } else {
+                label = '極低風險';
+            }
+
+            // 4. 更新儀表板
+            updateRiskMeter(totalRisk, label, '', 0.3); // 0.3s 平滑過渡
+        }
+
+        // =================================================================
+        // API 整合函數：處理檔案上傳並呼叫後端 (保留)
         // =================================================================
         async function handleVideoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
+            // 在新的上傳開始時，重置所有風險和清單
+            baseAIRiskScore = 0;
+            resetChecklist(false); // 不重置影片播放器，因為馬上就要設定
+            
             const statusDiv = document.getElementById('detection-report-details');
             const systemStatus = document.getElementById('system-status');
             const uploadFilename = document.getElementById('upload-filename');
+            const progressBarContainer = document.getElementById('upload-progress-container');
+            const progressBar = document.getElementById('upload-progress-bar');
+            const progressPercentage = document.getElementById('upload-percentage');
 
             uploadFilename.textContent = file.name;
+            progressBarContainer.classList.remove('hidden');
 
-            // 1. 顯示處理中狀態
-            updateRiskMeter(0, "分析中...", 'text-yellow-500', 0.5);
-            document.getElementById('risk-advice').textContent = "影片已上傳，正在由 AI 伺服器進行深度分析，這可能需要幾分鐘的時間...";
-            statusDiv.innerHTML = "<h4><i class='fas fa-spinner fa-spin mr-2'></i> 正在等待 AI 伺服器響應...</h4>";
-            systemStatus.innerHTML = "<i class='fas fa-circle text-yellow-500 text-[8px] mr-2'></i> 分析中";
+            videoPlayer.src = URL.createObjectURL(file);
+            document.getElementById('player-status').textContent = 準備播放：${file.name};
+
+
+            updateRiskMeter(0, "上傳中...", 'text-blue-500', 0.1);
+            document.getElementById('risk-advice').textContent = "影片正在上傳到伺服器。完成後將自動啟動 AI 分析。";
+            statusDiv.innerHTML = "<h4><i class='fas fa-upload fa-spin mr-2'></i> 檔案上傳中...</h4>";
+            systemStatus.innerHTML = "<i class='fas fa-circle text-blue-500 text-[8px] mr-2'></i> 上傳中";
             
-            // 2. 準備 FormData
             const formData = new FormData();
             formData.append('videoFile', file); 
 
-            try {
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                const data = await response.json();
-                
-                if (response.ok && data.status === 'success') {
-                    // 3. 處理成功的結果
-                    processAIResults(data.report); 
-                } else {
-                    // 處理 API 錯誤
-                    handleAnalysisError(data.error || HTTP 錯誤: ${response.status});
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', API_ENDPOINT, true);
+            
+            xhr.upload.onprogress = function(e) {
+                // ... (上傳進度邏輯不變) ...
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + '%';
+                    progressPercentage.textContent = percent + '%';
+                    if (percent === 100) {
+                        updateRiskMeter(0, "分析中...", 'text-yellow-500', 0.1);
+                        document.getElementById('risk-advice').textContent = "上傳完成！AI 伺服器正在進行深度分析，請稍候...";
+                        statusDiv.innerHTML = "<h4><i class='fas fa-spinner fa-spin mr-2'></i> AI 分析處理中...</h4>";
+                        systemStatus.innerHTML = "<i class='fas fa-circle text-yellow-500 text-[8px] mr-2'></i> 分析中";
+                        progressBarContainer.classList.add('hidden');
+                        
+                    }
                 }
-            } catch (error) {
-                // 處理網路錯誤
+            };
+            
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.status === 'success') {
+                            processAIResults(data.report); 
+                        } else {
+                            handleAnalysisError(data.error || '伺服器返回失敗狀態');
+                        }
+                    } catch (e) {
+                         handleAnalysisError('無法解析伺服器響應。');
+                    }
+                } else {
+                    handleAnalysisError(HTTP 錯誤: ${xhr.status});
+                }
+            };
+
+            xhr.onerror = function() {
                 handleAnalysisError('網路連線失敗或後端伺服器未啟動。');
-            }
+            };
+
+            xhr.send(formData);
         }
 
-        // 根據後端返回的結果更新儀表板
+        // 處理 AI 結果並更新儀表板 (修改：儲存基礎風險並呼叫整合函數)
         function processAIResults(aiReportHtml) {
             let riskScore = 0;
             let advice = "AI 審核通過。未偵測到有害內容或明顯 Deepfake 跡象。";
-            let colorClass = 'text-green-500';
-            let label = '極低風險';
 
-            // 根據後端返回的 HTML 內容判斷風險級別
             if (aiReportHtml.includes('color: red')) {
-                riskScore = Math.floor(Math.random() * 30) + 70; // 70-100%
-                advice = "🚨 AI 偵測到高風險特徵 (例如：暴力、成人內容或 Deepfake 跡象)！請仔細查看下方報告中的時間點。";
-                colorClass = 'text-red-500';
-                label = '高風險';
+                riskScore = Math.floor(Math.random() * 20) + 70; // 70-90%
+                advice = "🚨 AI 偵測到高風險特徵！請仔細查看下方報告中的時間點，並點擊按鈕跳轉。";
             } else if (aiReportHtml.includes('POSSIBLE')) {
-                 riskScore = Math.floor(Math.random() * 30) + 40; // 40-70%
+                 riskScore = Math.floor(Math.random() * 20) + 40; // 40-60%
                 advice = "💡 AI 偵測到中度風險特徵。建議人工複核相關時間點。";
-                colorClass = 'text-yellow-500';
-                label = '中度風險';
             } else {
-                riskScore = Math.floor(Math.random() * 20); // 0-20%
+                riskScore = Math.floor(Math.random() * 15); // 0-15%
             }
 
-            // 更新儀表板
-            updateRiskMeter(riskScore, label, colorClass, 1.0); 
+            // *核心修改 1：儲存 AI 基礎分數*
+            baseAIRiskScore = riskScore; 
+            
+            // *核心修改 2：使用整合函數更新儀表板*
+            calculateAndApplyManualRisk(); 
+            
+            // 更新文字報告
             document.getElementById('risk-advice').textContent = advice;
             document.getElementById('detection-report-details').innerHTML = <h4>AI 審核報告:</h4>${aiReportHtml};
             document.getElementById('system-status').innerHTML = "<i class='fas fa-circle text-green-500 text-[8px] mr-2'></i> 系統待命";
+            document.getElementById('player-status').textContent = 分析完成，AI 基礎風險分數：${riskScore}%;
         }
-
+        
+        // 處理錯誤 (保留)
         function handleAnalysisError(errorMessage) {
+            baseAIRiskScore = 0;
             updateRiskMeter(0, '錯誤', 'text-slate-400', 0);
             document.getElementById('risk-advice').innerHTML = <p class="text-red-500">${errorMessage}</p>;
             document.getElementById('detection-report-details').innerHTML = <p class='text-red-500'>無法取得分析結果，錯誤：${errorMessage}</p>;
             document.getElementById('system-status').innerHTML = "<i class='fas fa-circle text-red-500 text-[8px] mr-2'></i> 錯誤";
+            document.getElementById('upload-progress-container').classList.add('hidden');
         }
 
+        // 處理本地照片上傳並預覽 (保留)
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!file.type.match('image.*')) {
+                alert("請選擇圖片檔案！");
+                return;
+            }
+
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const previewImg = document.getElementById('uploaded-photo-preview');
+                previewImg.src = e.target.result;
+                previewImg.classList.remove('opacity-50');
+                
+                document.getElementById('risk-advice').textContent = "📸 真實照片已載入。請手動比對影片中的臉部細節。";
+            };
+            reader.readAsDataURL(file);
+        }
+
+
         // =================================================================
-        // 輔助與互動函數 (從原始程式碼保留)
+        // 輔助與互動函數
         // =================================================================
+        window.jumpTo = function(seconds) {
+            if (videoPlayer.src) {
+                videoPlayer.currentTime = seconds;
+                videoPlayer.play();
+                document.getElementById('player-status').textContent = 跳轉到標記時間點: ${seconds} 秒;
+            } else {
+                alert("請先上傳影片！");
+            }
+        }
+
         function toggleInfoModal() {
             const modal = document.getElementById('info-modal');
             modal.classList.toggle('hidden');
         }
 
-        function resetChecklist() {
-            // 重置儀表板狀態
+        // 重置函數 (修改：增加參數控制是否重置影片播放器)
+        function resetChecklist(resetVideo = true) {
+            baseAIRiskScore = 0; // 重置基礎風險
             updateRiskMeter(0, '未分析', 'text-green-400', 0.5);
             document.getElementById('risk-advice').textContent = "請上傳您的影片檔案，由 AI 進行 Deepfake 和內容安全審核。";
             document.getElementById('detection-report-details').innerHTML = "<p>報告結果將在這裡顯示。請先上傳影片。</p>";
             document.getElementById('upload-filename').textContent = "[支援 mp4, mov, avi]";
+            document.getElementById('upload-progress-container').classList.add('hidden');
             
-            // 重置手動檢查清單
+            if (resetVideo) {
+                videoPlayer.src = '';
+                document.getElementById('player-status').textContent = "上傳影片後將在此播放。";
+            }
+            
+            const previewImg = document.getElementById('uploaded-photo-preview');
+            previewImg.src = "https://via.placeholder.com/300x200?text=Photo+Preview";
+            previewImg.classList.add('opacity-50');
+            
             const checkboxes = document.querySelectorAll('#checklist-items input[type="checkbox"]');
             checkboxes.forEach(cb => {
                 cb.checked = false;
             });
-            // 確保系統狀態為待命
             document.getElementById('system-status').innerHTML = "<i class='fas fa-circle text-green-500 text-[8px] mr-2'></i> 系統待命";
         }
 
-        // 初始化：設置事件監聽器以更新手動風險分數
+        // *核心修改 3：為所有清單項目增加事件監聽*
         document.querySelectorAll('#checklist-items input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', () => {
-                // 這裡我們不再依賴手動清單來決定 AI 結果，僅保留其視覺效果
-            });
+            checkbox.addEventListener('change', calculateAndApplyManualRisk);
         });
-        
-        // 初始載入時調用一次重置
+
         window.onload = resetChecklist;
     </script>
 </body>
